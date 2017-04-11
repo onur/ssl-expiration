@@ -1,0 +1,19 @@
+[package]
+name = "ssl-expiration"
+version = "0.1.0"
+description = "Checks SSL certificate expiration"
+authors = ["Onur Aslan <onur@onur.im>"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/onur/ssl-expiration"
+documentation = "https://docs.rs/ssl-expiration"
+
+[dependencies]
+error-chain = "0.10"
+openssl = "0.9"
+openssl-sys = "0.9"
+
+[[bin]]
+name = "ssl-expiration"
+test = false
+doc = false
