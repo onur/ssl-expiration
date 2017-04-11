@@ -26,7 +26,6 @@ with: `cargo install ssl-expires` and check expiration of SSL certificates with:
 
 ```sh
 $ ssl-expiration google.com docs.rs github.com
-$ ./target/debug/ssl-expiration google.com docs.rs github.com
 google.com SSL certificate will expire in 69 days.
 docs.rs SSL certificate will expire in 8 days.
 github.com SSL certificate will expire in 399 days.
