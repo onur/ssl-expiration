@@ -1,12 +1,12 @@
 //! Checks SSL certificate expiration.
-//! 
+//!
 //! This crate will try to connect a remote server and check SSL certificate expiration.
-//! 
+//!
 //! Example:
-//! 
+//!
 //! ```rust
 //! use ssl_expiration::SslExpiration;
-//! 
+//!
 //! let expiration = SslExpiration::from_domain_name("google.com").unwrap();
 //! if expiration.is_expired() {
 //!     // do something if SSL certificate expired
@@ -41,8 +41,8 @@ pub struct SslExpiration(c_int);
 
 impl SslExpiration {
     /// Creates new SslExpiration from domain name.
-    /// 
-    /// This function will use default SSL port (443) to check SSL certificate.
+    ///
+    /// This function will use HTTPS port (443) to check SSL certificate.
     pub fn from_domain_name(domain: &str) -> Result<SslExpiration> {
         SslExpiration::from_addr(format!("{}:443", domain))
     }
@@ -77,11 +77,18 @@ impl SslExpiration {
         Ok(SslExpiration(pday * 24 * 60 * 60 - psec))
     }
 
-    /// How long until SSL certificate expires.
-    /// 
+    /// How many seconds until SSL certificate expires.
+    ///
     /// This function will return minus if SSL certificate is already expired.
     pub fn secs(&self) -> i32 {
         self.0
+    }
+
+    /// How many days until SSL certificate expires
+    ///
+    /// This function will return minus if SSL certificate is already expired.
+    pub fn days(&self) -> i32 {
+        self.0 / 60 / 60 / 24
     }
 
     /// Returns true if SSL certificate is expired
