@@ -9,7 +9,7 @@ fn main() {
     for domain in env::args().skip(1) {
         match ssl_expiration::SslExpiration::from_domain_name(&domain) {
             Ok(expiration) => {
-                let days = expiration.secs() / 60 / 60 / 24;
+                let days = expiration.days();
                 if expiration.is_expired() {
                     let _ = writeln!(stderr(),
                                      "{} SSL certificate expired {} days ago",
@@ -17,7 +17,7 @@ fn main() {
                                      !days);
                     exit_code = 1;
                 } else {
-                    println!("{} SSL certificate will expire in {} days.", domain, days);
+                    println!("{} SSL certificate will expire in {} days", domain, days);
                 }
             }
             Err(e) => {
