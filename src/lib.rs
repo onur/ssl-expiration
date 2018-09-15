@@ -13,6 +13,7 @@
 //! }
 //! ```
 
+extern crate foreign_types_shared;
 extern crate openssl;
 extern crate openssl_sys;
 #[macro_use]
@@ -24,7 +25,7 @@ use std::error::Error;
 use openssl::ssl::{Ssl, SslContext, SslMethod, SslVerifyMode};
 use openssl::asn1::Asn1Time;
 use openssl_sys::ASN1_TIME;
-use openssl::types::{OpenSslType, OpenSslTypeRef};
+use foreign_types_shared::{ForeignType,ForeignTypeRef};
 use error::Result;
 
 
