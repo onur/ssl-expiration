@@ -45,17 +45,18 @@ impl SslExpiration {
     ///
     /// This function will use HTTPS port (443) to check SSL certificate.
     pub fn from_domain_name(domain: &str) -> Result<SslExpiration> {
-        SslExpiration::from_addr(format!("{}:443", domain))
+        SslExpiration::from_addr(format!("{}:443", domain), domain)
     }
 
     /// Creates new SslExpiration from SocketAddr.
-    pub fn from_addr<A: ToSocketAddrs>(addr: A) -> Result<SslExpiration> {
+    pub fn from_addr<A: ToSocketAddrs>(addr: A,  domain: &str) -> Result<SslExpiration> {
         let context = {
             let mut context = SslContext::builder(SslMethod::tls())?;
             context.set_verify(SslVerifyMode::empty());
             context.build()
         };
-        let connector = Ssl::new(&context)?;
+        let mut connector = Ssl::new(&context)?;
+        connector.set_hostname(domain)?;
         let stream = TcpStream::connect(addr)?;
         let stream = connector.connect(stream)
             .map_err(|e| error::ErrorKind::HandshakeError(e.description().to_owned()))?;
