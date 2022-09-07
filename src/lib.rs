@@ -29,12 +29,12 @@ use foreign_types_shared::{ForeignType,ForeignTypeRef};
 use error::Result;
 
 
-extern "C" {
-    fn ASN1_TIME_diff(pday: *mut c_int,
-                      psec: *mut c_int,
-                      from: *const ASN1_TIME,
-                      to: *const ASN1_TIME);
-}
+// extern "C" {
+//     fn ASN1_TIME_diff(pday: *mut c_int,
+//                       psec: *mut c_int,
+//                       from: *const ASN1_TIME,
+//                       to: *const ASN1_TIME);
+// }
 
 
 pub struct SslExpiration(c_int);
@@ -45,17 +45,18 @@ impl SslExpiration {
     ///
     /// This function will use HTTPS port (443) to check SSL certificate.
     pub fn from_domain_name(domain: &str) -> Result<SslExpiration> {
-        SslExpiration::from_addr(format!("{}:443", domain))
+        SslExpiration::from_addr(format!("{}:443", domain), domain)
     }
 
     /// Creates new SslExpiration from SocketAddr.
-    pub fn from_addr<A: ToSocketAddrs>(addr: A) -> Result<SslExpiration> {
+    pub fn from_addr<A: ToSocketAddrs>(addr: A,  domain: &str) -> Result<SslExpiration> {
         let context = {
             let mut context = SslContext::builder(SslMethod::tls())?;
             context.set_verify(SslVerifyMode::empty());
             context.build()
         };
-        let connector = Ssl::new(&context)?;
+        let mut connector = Ssl::new(&context)?;
+        connector.set_hostname(domain)?;
         let stream = TcpStream::connect(addr)?;
         let stream = connector.connect(stream)
             .map_err(|e| error::ErrorKind::HandshakeError(e.description().to_owned()))?;
@@ -65,17 +66,19 @@ impl SslExpiration {
 
         let now = Asn1Time::days_from_now(0)?;
 
-        let (mut pday, mut psec) = (0, 0);
-        unsafe {
-            let ptr_pday: *mut c_int = &mut pday;
-            let ptr_psec: *mut c_int = &mut psec;
-            ASN1_TIME_diff(ptr_pday,
-                           ptr_psec,
-                           now.as_ptr(),
-                           cert.not_after().as_ptr());
-        }
+        // let (mut pday, mut psec) = (0, 0);
+        let cert_diff = now.diff(cert.not_after())?;
+        // unsafe {
+        //     let ptr_pday: *mut c_int = &mut pday;
+        //     let ptr_psec: *mut c_int = &mut psec;
+        //     let now_ptr: *const ASN1_TIME = &(now as ASN1_TIME);
+        //     ASN1_TIME_diff(ptr_pday,
+        //                    ptr_psec,
+        //                    now_ptr,
+        //                    cert.not_after().as_ptr());
+        // }
 
-        Ok(SslExpiration(pday * 24 * 60 * 60 - psec))
+        Ok(SslExpiration(cert_diff.days * 24 * 60 * 60 - cert_diff.secs))
     }
 
     /// How many seconds until SSL certificate expires.
